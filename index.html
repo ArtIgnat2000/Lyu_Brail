@@ -2,116 +2,446 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Луи Брайль</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Луи Брайль — неон-аркада</title>
 <style>
-  :root { --bg:#1a1a2e; --card:#2d2d4a; --accent:#ffcc00; --text:#ffffff; --muted:#c9c9e0; }
-  * { box-sizing:border-box; margin:0; padding:0; }
+  :root { --bg:#0d0d1a; --card:rgba(20,20,40,.85); --accent:#ff00ff; --text:#e0ffff; --muted:#a0c0ff; --radius:18px; --shadow:0 0 20px rgba(255,0,255,.25); }
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
   html,body { height:100%; overflow:hidden; }
-  body { font-family:"Comic Sans MS","Segoe UI",Arial,sans-serif; background:var(--bg); color:var(--text); }
+  body { font-family:"Comic Sans MS","Segoe UI Rounded","Trebuchet MS",Arial,sans-serif; background:var(--bg); color:var(--text); }
+  body::before { content:""; position:fixed; inset:0; pointer-events:none; z-index:0; background:linear-gradient(90deg, rgba(255,0,255,.08) 1px, transparent 1px), linear-gradient(rgba(0,255,255,.08) 1px, transparent 1px); background-size:40px 40px; }
+  button { font-family:inherit; }
+
   .deck { position:fixed; inset:0; }
-  .slide { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:20px 16px; opacity:0; pointer-events:none; transition:opacity .35s; overflow-y:auto; }
-  .slide.active { opacity:1; pointer-events:auto; }
-  .inner { max-width:500px; width:100%; text-align:center; }
-  h1 { font-size:clamp(22px,6vw,36px); line-height:1.15; font-weight:800; }
+  .slide { position:absolute; inset:0; display:flex; align-items:flex-start; justify-content:center; padding:24px 16px 80px; opacity:0; pointer-events:none; transition:opacity .4s, transform .4s; overflow-y:auto; transform:translateY(12px); z-index:1; }
+  .slide.active { opacity:1; pointer-events:auto; transform:translateY(0); }
+  .inner { max-width:640px; width:100%; text-align:center; }
+
+  h1 { font-size:clamp(30px,8vw,52px); line-height:1.1; font-weight:900; margin-bottom:8px; text-shadow:0 0 12px var(--accent), 0 0 24px #00ffff; }
   h1 span { color:var(--accent); }
-  h2 { font-size:clamp(17px,5vw,26px); font-weight:800; margin-bottom:6px; }
-  p { font-size:clamp(13px,3vw,17px); line-height:1.45; margin-bottom:5px; color:var(--muted); }
-  .big { font-size:clamp(36px,11vw,64px); margin:4px 0; }
-  .rule { display:flex; gap:6px; align-items:center; padding:5px 8px; background:var(--card); border-radius:8px; margin:3px 0; font-size:13px; text-align:left; }
-  .rule .m { font-size:16px; flex-shrink:0; }
+  h2 { font-size:clamp(24px,6.5vw,38px); font-weight:900; margin-bottom:10px; text-shadow:0 0 12px var(--accent), 0 0 24px #00ffff; }
+  p { font-size:clamp(16px,4vw,22px); line-height:1.45; margin-bottom:8px; color:var(--muted); }
+  .big { font-size:clamp(52px,15vw,90px); margin:8px 0; line-height:1; animation:bounce 2s ease-in-out infinite; }
+  @keyframes bounce { 0%,100%{transform:translateY(0) scale(1);} 50%{transform:translateY(-6px) scale(1.05);} }
+  .rule { display:flex; gap:10px; align-items:center; padding:10px 14px; background:var(--card); border-radius:12px; margin:5px 0; font-size:16px; text-align:left; border:1px solid var(--accent); box-shadow:0 0 12px rgba(255,0,255,.4), inset 0 0 8px rgba(0,255,255,.1); }
+  .rule .m { font-size:22px; flex-shrink:0; }
   .rule .t { color:var(--text); }
   .rule .t strong { color:var(--accent); }
-  .row { display:flex; gap:5px; justify-content:center; flex-wrap:wrap; margin:6px 0; }
-  .pill { background:var(--card); border-radius:999px; padding:4px 10px; font-size:12px; }
-  .quote { background:rgba(255,204,0,.12); border-left:3px solid var(--accent); border-radius:7px; padding:8px 12px; font-style:italic; color:var(--text); margin:6px 0; font-size:14px; text-align:left; }
-  .nav { position:fixed; bottom:10px; left:50%; transform:translateX(-50%); display:flex; gap:5px; align-items:center; z-index:100; background:rgba(26,26,46,.9); padding:4px 8px; border-radius:999px; border:2px solid var(--accent); }
-  .nav button { background:var(--accent); border:none; color:#1a1a2e; width:28px; height:28px; border-radius:50%; cursor:pointer; font-size:14px; font-weight:800; }
-  .dots { display:flex; gap:3px; }
-  .dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.3); cursor:pointer; }
-  .dot.active { background:var(--accent); width:16px; border-radius:3px; }
-  .counter { color:var(--muted); font-size:10px; min-width:30px; text-align:center; }
+  .row { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin:10px 0; }
+  .pill { background:var(--card); border-radius:999px; padding:6px 14px; font-size:15px; font-weight:700; border:1px solid var(--accent); box-shadow:0 0 8px rgba(255,0,255,.3); }
+  .quote { background:rgba(255,255,255,.06); border-left:4px solid var(--accent); border-radius:10px; padding:12px 16px; font-style:italic; color:var(--text); margin:10px 0; font-size:17px; text-align:left; font-weight:600; }
+  .avatar { width:160px; height:160px; border-radius:50%; object-fit:cover; border:4px solid var(--accent); margin:0 auto 12px; display:block; box-shadow:0 0 24px var(--accent); cursor:pointer; transition:transform .3s; }
+  .avatar:hover { transform:rotate(8deg) scale(1.05); }
+
+  .nav { position:fixed; bottom:12px; left:50%; transform:translateX(-50%); display:flex; gap:8px; align-items:center; z-index:100; background:rgba(0,0,0,.5); padding:8px 12px; border-radius:999px; border:2px solid var(--accent); backdrop-filter:blur(8px); box-shadow:0 0 16px var(--accent); }
+  .nav button { background:var(--accent); border:none; color:#0d0d1a; width:40px; height:40px; border-radius:50%; cursor:pointer; font-size:18px; font-weight:900; transition:transform .15s; }
+  .nav button:active { transform:scale(.9); }
+  .dots { display:flex; gap:5px; align-items:center; }
+  .ndot { width:12px; height:12px; border-radius:50%; background:rgba(255,255,255,.35); cursor:pointer; transition:all .3s; border:1.5px solid rgba(255,0,255,.5); }
+  .ndot.active { background:var(--accent); width:32px; border-radius:8px; box-shadow:0 0 14px var(--accent); animation:dotpulse 1.2s ease-in-out infinite; }
+  @keyframes dotpulse { 0%,100%{box-shadow:0 0 8px var(--accent);} 50%{box-shadow:0 0 18px var(--accent);} }
+  .counter { color:var(--text); font-size:11px; min-width:34px; text-align:center; font-weight:700; }
+
+  .quiz { display:flex; flex-direction:column; gap:10px; margin-top:12px; }
+  .q { background:var(--card); border-radius:12px; padding:12px 14px; font-weight:700; font-size:16px; text-align:left; border:1px solid var(--accent); }
+  .opts { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .opt { background:var(--card); border:1px solid var(--accent); border-radius:10px; padding:10px 12px; cursor:pointer; font-weight:700; font-size:15px; transition:all .2s; color:var(--text); }
+  .opt:hover { transform:scale(1.03); box-shadow:0 0 10px var(--accent); }
+  .opt.correct { background:#2ecc71; color:#fff; border-color:#27ae60; }
+  .opt.wrong { background:#e74c3c; color:#fff; border-color:#c0392b; }
+  .feedback { font-weight:800; font-size:18px; margin-top:8px; min-height:24px; color:var(--accent); }
+
+  .braille-cell { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; width:140px; margin:12px auto; }
+  .dot-btn { width:62px; height:62px; border-radius:50%; border:3px solid var(--accent); background:rgba(255,255,255,.08); cursor:pointer; transition:all .2s; font-size:24px; color:transparent; box-shadow:0 0 6px rgba(255,0,255,.3); }
+  .dot-btn.on { background:var(--accent); color:#0d0d1a; box-shadow:0 0 18px var(--accent); }
+  .target-cell { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; width:110px; margin:8px auto; }
+  .target-dot { width:44px; height:44px; border-radius:50%; background:rgba(255,255,255,.12); border:2px solid var(--accent); }
+  .target-dot.on { background:var(--accent); box-shadow:0 0 10px var(--accent); }
+  .game-info { font-weight:800; font-size:18px; margin:10px 0; color:var(--accent); }
+
+  /* cipher game */
+  .cipher-word { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin:10px 0; }
+  .cipher-letter { display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .cipher-letter .cell { display:grid; grid-template-columns:repeat(2,1fr); gap:4px; width:60px; }
+  .cipher-letter .dot { width:24px; height:24px; border-radius:50%; background:rgba(255,255,255,.12); border:1.5px solid var(--accent); }
+  .cipher-letter .dot.on { background:var(--accent); box-shadow:0 0 8px var(--accent); }
+  .cipher-input { display:flex; gap:8px; justify-content:center; margin:12px 0; flex-wrap:wrap; }
+  .cipher-input input { background:var(--card); border:1px solid var(--accent); border-radius:10px; padding:10px 14px; color:var(--text); font-size:20px; font-weight:700; text-align:center; width:200px; letter-spacing:4px; text-transform:uppercase; box-shadow:0 0 10px rgba(255,0,255,.3); }
+  .cipher-input button { background:var(--accent); border:none; color:#0d0d1a; padding:10px 18px; border-radius:10px; font-weight:900; font-size:16px; cursor:pointer; }
+
+  .confetti-particle { position:fixed; width:10px; height:10px; border-radius:2px; pointer-events:none; z-index:200; }
+
+  /* light theme */
+  body.light {
+    --bg:#f0f4ff; --card:rgba(255,255,255,.9); --accent:#d600d6; --text:#1a1a2e; --muted:#4a4a6a;
+    background:#f0f4ff;
+  }
+  body.light::before { background:linear-gradient(90deg, rgba(214,0,214,.06) 1px, transparent 1px), linear-gradient(rgba(0,128,255,.06) 1px, transparent 1px); }
+  body.light .nav { background:rgba(255,255,255,.7); }
+  body.light .ndot { background:rgba(0,0,0,.15); border-color:rgba(214,0,214,.5); }
+  body.light .ndot.active { background:#0080ff; border-color:#0080ff; box-shadow:0 0 16px #0080ff; }
+
+  .slide-compact { padding:16px 12px 70px; }
+  .slide-compact .big { font-size:clamp(40px,11vw,64px); margin:4px 0; }
+  .slide-compact h2 { font-size:clamp(20px,5.5vw,30px); margin-bottom:6px; }
+  .slide-compact p { font-size:clamp(14px,3.4vw,18px); margin-bottom:4px; }
+  .cipher-word { display:flex; gap:8px; justify-content:center; flex-wrap:nowrap; margin:8px 0; overflow-x:auto; padding-bottom:4px; }
+  .cipher-word::-webkit-scrollbar { height:6px; }
+  .cipher-word::-webkit-scrollbar-thumb { background:var(--accent); border-radius:3px; }
+
+  @media (max-width:420px) { .opts { grid-template-columns:1fr; } }
 </style>
 </head>
-<body>
-<div class="deck">
+<body class="theme-neon">
 
-<!-- 1 -->
-<div class="slide active">
-  <div class="inner">
-    <img src="louis-braille-portrait-photo-3.jpg" alt="Луи Брайль" style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:3px solid var(--accent);margin:0 auto 8px;display:block;">
-    <h1>Луи Брайль</h1>
-    <p>Мальчик из Франции. В 3 года повредил глаз шилом и ослеп.</p>
-    <p>Но не сдался! Он придумал чтение для слепых.</p>
-    <div class="quote">«Я не вижу, но я хочу читать!»</div>
-  </div>
-</div>
-
-<!-- 2 -->
-<div class="slide">
-  <div class="inner">
-    <div class="big">✋</div>
-    <h2>Точки Брайля</h2>
-    <p>В 15 лет Луи придумал <strong style="color:var(--accent)">точки</strong> — выпуклые точки на бумаге.</p>
-    <p>Слепые читают их <strong style="color:var(--accent)">пальцами</strong>!</p>
-    <div class="row">
-      <div class="pill">👆 Палец</div>
-      <div class="pill">⚪ Точка</div>
-      <div class="pill">📖 Книга</div>
+<div class="deck" id="deck">
+  <!-- 1 title -->
+  <div class="slide active">
+    <div class="inner">
+      <img src="louis-braille-portrait-photo-3.jpg" alt="Луи Брайль" class="avatar" onclick="confetti(this.getBoundingClientRect().left+65,this.getBoundingClientRect().top+65,40);soundSuccess();">
+      <h1>Луи <span>Брайль</span></h1>
+      <p>Мальчик из Франции. В 3 года повредил глаз шилом и ослеп.</p>
+      <p>Но не сдался! Он придумал чтение для слепых.</p>
+      <div class="quote">«Я не вижу, но я хочу читать!»</div>
+      <div class="row">
+        <div class="pill">🇫🇷 Франция</div>
+        <div class="pill">📅 1809 год</div>
+        <div class="pill">💡 Изобретатель</div>
+      </div>
     </div>
-    <p>Каждая буква — набор точек. Как конструктор!</p>
+  </div>
+  <!-- 2 life -->
+  <div class="slide">
+    <div class="inner">
+      <div class="big">📖</div>
+      <h2>Жизнь Луи Брайля</h2>
+      <div class="rule"><span class="m">👶</span><div class="t"><strong>Родился</strong> 4 января 1809 г. в Кувре (Франция).</div></div>
+      <div class="rule"><span class="m">⚠️</span><div class="t"><strong>В 3 года</strong> повредил глаз шилом и ослеп.</div></div>
+      <div class="rule"><span class="m">🏫</span><div class="t"><strong>В 10 лет</strong> поступил в школу для слепых в Париже.</div></div>
+      <div class="rule"><span class="m">💡</span><div class="t"><strong>В 15 лет</strong> придумал шрифт Брайля.</div></div>
+      <div class="rule"><span class="m">🕯️</span><div class="t"><strong>Умер</strong> 6 января 1852 г. в Париже. Похоронен в Пантеоне.</div></div>
+      <p style="margin-top:8px;font-size:13px;">Его изобретение живёт до сих пор! 🌍</p>
+    </div>
+  </div>
+  <!-- 3 braille -->
+  <div class="slide">
+    <div class="inner">
+      <div class="big">✋</div>
+      <h2>Точки Брайля</h2>
+      <p>В 15 лет Луи придумал <strong style="color:var(--accent)">точки</strong> — выпуклые точки на бумаге.</p>
+      <p>Слепые читают их <strong style="color:var(--accent)">пальцами</strong>!</p>
+      <div class="row">
+        <div class="pill">👆 Палец</div>
+        <div class="pill">⚪ Точка</div>
+        <div class="pill">📖 Книга</div>
+      </div>
+      <p>Каждая буква — набор из 6 точек. Как конструктор!</p>
+      <div class="target-cell" id="demoCell"></div>
+    </div>
+  </div>
+  <!-- 3 communication -->
+  <div class="slide">
+    <div class="inner">
+      <div class="big">🤝💛</div>
+      <h2>Как общаться со слепым?</h2>
+      <div class="rule"><span class="m">🚫</span><div class="t"><strong>Не говори</strong> «какой красивый закат!»</div></div>
+      <div class="rule"><span class="m">🚫</span><div class="t"><strong>Не говори</strong> «бедный ты».</div></div>
+      <div class="rule"><span class="m">✅</span><div class="t"><strong>Представься</strong>: «Привет, я Саша!»</div></div>
+      <div class="rule"><span class="m">✅</span><div class="t"><strong>Спроси</strong>: «Тебе помочь?»</div></div>
+      <p style="margin-top:8px;font-size:13px;">Будь добрым. Слепой видит сердцем. ❤️</p>
+    </div>
+  </div>
+  <!-- 4 build letter -->
+  <div class="slide">
+    <div class="inner">
+      <div class="big">🔧</div>
+      <h2>Собери букву Брайля</h2>
+      <p>Повтори узор точек для буквы <strong id="targetLetter" style="color:var(--accent)">А</strong>:</p>
+      <div class="target-cell" id="targetPattern"></div>
+      <p style="font-size:12px;margin-top:4px;">Нажимай на кружки снизу:</p>
+      <div class="braille-cell" id="buildCell"></div>
+      <div class="game-info" id="buildInfo">Раунд 1 / 5</div>
+      <button class="opt" id="buildBtn" style="max-width:200px;margin:0 auto;" onclick="checkBuild()">Проверить ✓</button>
+    </div>
+  </div>
+  <div class="slide slide-compact">
+    <div class="inner">
+      <div class="big">🔤</div>
+      <h2>Переведи в Брайль</h2>
+      <p>Введи слово — и увидишь, как оно выглядит в точках Брайля!</p>
+      <div class="cipher-input">
+        <input id="brailleInput" placeholder="СЛОВО" maxlength="12">
+        <button onclick="translateBraille()">Перевести</button>
+      </div>
+      <div class="cipher-word" id="brailleOutput"></div>
+      <div class="game-info" id="brailleInfo">Введи слово выше ☝️</div>
+    </div>
+  </div>
+  <!-- 6 quiz (в конце) -->
+  <div class="slide">
+    <div class="inner">
+      <div class="big">🧠</div>
+      <h2>Сложный квиз!</h2>
+      <p>Проверь, что запомнил:</p>
+      <div class="quiz" id="quiz"></div>
+      <div class="feedback" id="quizFeedback"></div>
+    </div>
   </div>
 </div>
 
-<!-- 3 -->
-<div class="slide">
-  <div class="inner">
-    <div class="big">🤝💛</div>
-    <h2>Как общаться со слепым?</h2>
-    <div class="rule"><span class="m">🚫</span><div class="t"><strong>Не говори</strong> «какой красивый закат!»</div></div>
-    <div class="rule"><span class="m">🚫</span><div class="t"><strong>Не говори</strong> «бедный ты».</div></div>
-    <div class="rule"><span class="m">✅</span><div class="t"><strong>Представься</strong>: «Привет, я Саша!»</div></div>
-    <div class="rule"><span class="m">✅</span><div class="t"><strong>Спроси</strong>: «Тебе помочь?»</div></div>
-    <p style="margin-top:6px;font-size:12px;">Будь добрым. Слепой видит сердцем. ❤️</p>
-  </div>
-</div>
-
-</div>
-
-<div class="nav">
+<div class="nav" id="nav">
   <button id="prev">←</button>
   <div class="dots" id="dots"></div>
   <span class="counter" id="counter"></span>
+  <button id="themeToggle" onclick="toggleTheme()" title="Светлая/тёмная тема">🌙</button>
   <button id="next">→</button>
 </div>
 
 <script>
-  const slides = document.querySelectorAll('.slide');
-  const dotsBox = document.getElementById('dots');
-  let cur = 0;
+// ---------- Audio ----------
+let audioCtx = null;
+function beep(freq=440, dur=0.12, type='sine', vol=0.15){
+  try {
+    if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+dur);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime+dur);
+  } catch(e){}
+}
+function soundSuccess(){ beep(523,.1); setTimeout(()=>beep(659,.1),100); setTimeout(()=>beep(784,.15),200); }
+function soundFail(){ beep(220,.15,'sawtooth'); setTimeout(()=>beep(180,.2,'sawtooth'),150); }
+function soundFlip(){ beep(330,.06,'triangle',.08); }
+
+// ---------- Confetti ----------
+function confetti(x,y,count=40){
+  const colors = ['#ff00ff','#00ffff','#ffd700','#ff3b3b','#2ecc71','#ff6b9d'];
+  for(let i=0;i<count;i++){
+    const p = document.createElement('div');
+    p.className='confetti-particle';
+    p.style.left = (x||window.innerWidth/2)+'px';
+    p.style.top = (y||window.innerHeight/2)+'px';
+    p.style.background = colors[Math.floor(Math.random()*colors.length)];
+    const ang = Math.random()*Math.PI*2;
+    const v = 4+Math.random()*6;
+    let vx = Math.cos(ang)*v, vy = Math.sin(ang)*v - 3;
+    let life=0;
+    document.body.appendChild(p);
+    const iv = setInterval(()=>{
+      life++;
+      vx *= .98; vy += .35;
+      p.style.left = (parseFloat(p.style.left)+vx)+'px';
+      p.style.top = (parseFloat(p.style.top)+vy)+'px';
+      p.style.opacity = 1 - life/45;
+      p.style.transform = `rotate(${life*12}deg)`;
+      if(life>45){ clearInterval(iv); p.remove(); }
+    },16);
+  }
+}
+
+// ---------- Deck ----------
+const slides = document.querySelectorAll('.slide');
+const dotsBox = document.getElementById('dots');
+let cur = 0;
+let dotEls = [];
+function initDeck(){
+  if(dotEls.length) return;
   slides.forEach((_,i) => {
     const d = document.createElement('div');
-    d.className = 'dot' + (i===0?' active':'');
+    d.className = 'ndot' + (i===0?' active':'');
     d.onclick = () => go(i);
     dotsBox.appendChild(d);
+    dotEls.push(d);
   });
-  const dots = document.querySelectorAll('.dot');
-  const counter = document.getElementById('counter');
-  function go(n) {
-    slides[cur].classList.remove('active');
-    dots[cur].classList.remove('active');
-    cur = (n + slides.length) % slides.length;
-    slides[cur].classList.add('active');
-    dots[cur].classList.add('active');
-    counter.textContent = (cur+1) + ' / ' + slides.length;
+}
+const counter = document.getElementById('counter');
+function go(n) {
+  if(dotEls[cur]) dotEls[cur].classList.remove('active');
+  slides[cur].classList.remove('active');
+  cur = (n + slides.length) % slides.length;
+  slides[cur].classList.add('active');
+  if(dotEls[cur]) dotEls[cur].classList.add('active');
+  counter.textContent = (cur+1) + ' / ' + slides.length;
+  beep(300+cur*40,.05,'triangle',.06);
+}
+document.getElementById('prev').onclick = () => go(cur-1);
+document.getElementById('next').onclick = () => go(cur+1);
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') go(cur+1);
+  if (e.key === 'ArrowLeft') go(cur-1);
+});
+let sx=0;
+document.addEventListener('touchstart', e=>{ sx=e.touches[0].clientX; });
+document.addEventListener('touchend', e=>{
+  const dx = e.changedTouches[0].clientX - sx;
+  if(Math.abs(dx)>50){ dx<0?go(cur+1):go(cur-1); }
+});
+
+// demo cell letter A
+const demoCell = document.getElementById('demoCell');
+[1,0,0,0,0,0].forEach(v=>{
+  const d=document.createElement('div'); d.className='target-dot'+(v?' on':''); demoCell.appendChild(d);
+});
+
+// ---------- Quiz (усложнённый) ----------
+const quizData = [
+  {q:"В каком году родился Луи Брайль?", opts:["1799","1809","1819","1829"], a:1},
+  {q:"В каком городе он учился в школе для слепых?", opts:["Лион","Марсель","Париж","Бордо"], a:2},
+  {q:"Сколько точек в одной ячейке Брайля?", opts:["4","5","6","8"], a:2},
+  {q:"В каком возрасте Луи придумал свою систему?", opts:["12 лет","15 лет","18 лет","21 год"], a:1},
+  {q:"Как называется система письма для слепых, которую он создал?", opts:["Шрифт Морзе","Шрифт Брайля","Шрифт Ньютона","Шрифт Кюри"], a:1},
+  {q:"В каком году умер Луи Брайль?", opts:["1842","1852","1862","1872"], a:1},
+];
+function initQuiz(){
+  const box = document.getElementById('quiz');
+  box.innerHTML='';
+  quizData.forEach((qd,i)=>{
+    const q = document.createElement('div'); q.className='q'; q.textContent=(i+1)+'. '+qd.q;
+    const opts = document.createElement('div'); opts.className='opts';
+    qd.opts.forEach((o,oi)=>{
+      const b = document.createElement('button'); b.className='opt'; b.textContent=o;
+      b.onclick = ()=>answerQuiz(i,oi,b,qd.a,opts);
+      opts.appendChild(b);
+    });
+    box.appendChild(q); box.appendChild(opts);
+  });
+}
+let quizScore=0, quizAnswered=0;
+function answerQuiz(qi,oi,btn,correct,opts){
+  if(btn.classList.contains('correct')||btn.classList.contains('wrong')) return;
+  const all = opts.querySelectorAll('.opt');
+  if(oi===correct){ btn.classList.add('correct'); quizScore++; soundSuccess(); confetti(btn.getBoundingClientRect().left+btn.offsetWidth/2, btn.getBoundingClientRect().top+btn.offsetHeight/2, 30); }
+  else { btn.classList.add('wrong'); all[correct].classList.add('correct'); soundFail(); }
+  quizAnswered++;
+  const fb = document.getElementById('quizFeedback');
+  if(quizAnswered===quizData.length){
+    const pct = Math.round(quizScore/quizData.length*100);
+    fb.textContent = pct===100 ? '🎉 Идеально! Ты настоящий эксперт!' : (pct>=60 ? ('👍 Хорошо! '+quizScore+' из '+quizData.length) : ('💪 Попробуй ещё! '+quizScore+' из '+quizData.length));
+    if(pct===100) confetti(window.innerWidth/2, window.innerHeight/2, 60);
   }
-  document.getElementById('prev').onclick = () => go(cur-1);
-  document.getElementById('next').onclick = () => go(cur+1);
-  document.addEventListener('keydown', e => {
-    if (e.key === 'ArrowRight' || e.key === ' ') go(cur+1);
-    if (e.key === 'ArrowLeft') go(cur-1);
+}
+
+// ---------- Build letter game ----------
+const letterPatterns = {
+  'А':[1,0,0, 0,0,0],
+  'Б':[1,1,0, 0,0,0],
+  'В':[1,0,0, 1,0,0],
+  'Г':[1,0,0, 1,1,0],
+  'Д':[1,0,0, 0,1,0],
+};
+const letters = Object.keys(letterPatterns);
+let buildRound=0, buildState=[0,0,0,0,0,0];
+function initBuild(){
+  buildRound=0; loadBuildRound();
+}
+function loadBuildRound(){
+  const letter = letters[buildRound % letters.length];
+  document.getElementById('targetLetter').textContent = letter;
+  const pat = letterPatterns[letter];
+  const tc = document.getElementById('targetPattern'); tc.innerHTML='';
+  pat.forEach(v=>{ const d=document.createElement('div'); d.className='target-dot'+(v?' on':''); tc.appendChild(d); });
+  buildState=[0,0,0,0,0,0];
+  const bc = document.getElementById('buildCell'); bc.innerHTML='';
+  for(let i=0;i<6;i++){
+    const b=document.createElement('button'); b.className='dot-btn'; b.textContent='•';
+    b.onclick=()=>{ buildState[i]^=1; b.classList.toggle('on',!!buildState[i]); soundFlip(); };
+    bc.appendChild(b);
+  }
+  document.getElementById('buildInfo').textContent = 'Раунд '+(buildRound+1)+' / 5';
+}
+function checkBuild(){
+  const letter = letters[buildRound % letters.length];
+  const pat = letterPatterns[letter];
+  const ok = pat.every((v,i)=>v===buildState[i]);
+  if(ok){
+    soundSuccess();
+    confetti(window.innerWidth/2, window.innerHeight/2, 40);
+    buildRound++;
+    if(buildRound>=5){
+      document.getElementById('buildInfo').textContent='🏆 Ты собрал все буквы!';
+      document.getElementById('targetLetter').textContent='★';
+      const btn = document.getElementById('buildBtn');
+      if(btn) btn.style.display='none';
+    } else {
+      setTimeout(loadBuildRound, 700);
+    }
+  } else {
+    soundFail();
+    document.getElementById('buildInfo').textContent='❌ Не совпало, попробуй ещё!';
+    setTimeout(()=>{ document.getElementById('buildInfo').textContent='Раунд '+(buildRound+1)+' / 5'; },1200);
+  }
+}
+
+// ---------- Translate to Braille ----------
+const extPatterns = Object.assign({}, letterPatterns, {
+  'К':[1,0,1, 0,0,0],
+  'О':[1,1,1, 0,0,0],
+  'Т':[1,0,0, 0,0,1],
+  'Д':[1,0,0, 0,1,1],
+  'М':[1,0,1, 1,0,0],
+  'И':[0,1,0, 1,0,0],
+  'Р':[1,1,0, 1,0,0],
+  'С':[0,1,1, 0,0,0],
+  'Н':[1,1,0, 0,1,0],
+  'Л':[1,0,0, 1,0,1],
+  'У':[1,0,1, 0,1,0],
+  'Е':[1,0,0, 0,1,0],
+  'Ж':[1,0,1, 0,1,0],
+  'З':[1,0,1, 0,1,1],
+  'Й':[0,1,1, 1,0,0],
+  'П':[0,1,1, 1,1,0],
+  'Ф':[0,1,0, 1,1,0],
+  'Х':[0,1,0, 0,1,1],
+  'Ц':[0,1,0, 0,0,1],
+  'Ч':[0,1,1, 0,1,0],
+  'Ш':[0,1,1, 0,1,1],
+  'Щ':[0,1,1, 0,0,1],
+  'Ы':[1,0,1, 1,1,0],
+  'Ь':[0,1,0, 1,0,1],
+  'Э':[0,1,0, 0,1,0],
+  'Ю':[0,1,1, 1,0,1],
+  'Я':[0,1,1, 0,0,1],
+  'Ё':[1,0,0, 0,1,0],
+});
+function letterPatternFor(ch){
+  return extPatterns[ch] || [0,0,0,0,0,0];
+}
+function translateBraille(){
+  const word = document.getElementById('brailleInput').value.trim().toUpperCase();
+  const box = document.getElementById('brailleOutput'); box.innerHTML='';
+  if(!word){ document.getElementById('brailleInfo').textContent='Введи слово!'; return; }
+  word.split('').forEach(ch=>{
+    const col = document.createElement('div'); col.className='cipher-letter';
+    const cell = document.createElement('div'); cell.className='cell';
+    const pat = letterPatternFor(ch);
+    pat.forEach(v=>{ const d=document.createElement('div'); d.className='dot'+(v?' on':''); cell.appendChild(d); });
+    col.appendChild(cell);
+    const lbl = document.createElement('div'); lbl.style.fontSize='11px'; lbl.style.color='var(--muted)'; lbl.textContent=ch;
+    col.appendChild(lbl);
+    box.appendChild(col);
   });
-  counter.textContent = '1 / ' + slides.length;
+  document.getElementById('brailleInfo').textContent='Слово «'+word+'» — '+word.length+' букв';
+  soundSuccess();
+}
+
+// ---------- Init ----------
+initDeck();
+initQuiz();
+initBuild();
+// restore theme
+if(localStorage.getItem('theme')==='light'){ document.body.classList.add('light'); document.getElementById('themeToggle').textContent='☀️'; }
+go(0);
+
+function toggleTheme(){
+  document.body.classList.toggle('light');
+  const isLight = document.body.classList.contains('light');
+  document.getElementById('themeToggle').textContent = isLight ? '☀️' : '🌙';
+  try { localStorage.setItem('theme', isLight?'light':'dark'); } catch(e){}
+  beep(440,.08,'triangle',.1);
+}
 </script>
 </body>
 </html>
